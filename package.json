@@ -1,0 +1,27 @@
+{
+  "name": "examples",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Ryan Toronto",
+  "license": "ISC",
+  "devDependencies": {
+    "prettier": "^3.5.3",
+    "tsx": "^4.19.4"
+  },
+  "dependencies": {
+    "@ai-sdk/togetherai": "^0.2.14",
+    "@types/node": "^22.15.21",
+    "ai": "^4.3.16",
+    "dotenv": "^16.5.0",
+    "together-ai": "^0.16.0",
+    "zod": "^3.25.20",
+    "zod-to-json-schema": "^3.24.5"
+  }
+}
