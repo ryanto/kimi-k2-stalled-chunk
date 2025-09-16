@@ -1,8 +1,8 @@
-# Kimi K2 instruct 0905 stalled chunk
+# Stalled chunk on many models
 
-When requesting a stream from Kimi K2 Instruct 0905 with tools the stream chunks usually stall. For example, in the middle of the stream there will be a delay from anywhere between 15 and 30 seconds between chunks. This makes it appear as if the stream is frozen or has crashed.
+When requesting a stream from a lot of our models (including Kimi K2 Instruct 0905, Qwen/Qwen3-235B-A22B-Thinking-2507, OSS GPT 120B, ect...) with tools the stream chunks usually stall. For example, in the middle of the stream there will be a delay from anywhere between 15 and 30 seconds between chunks. This makes it appear as if the stream is frozen or has crashed.
 
-This repository contains a reproduction that requests a code sample from Kimi 5 times and then logs whenever any one of those 5 calls has more than 5 seconds between chunks.
+This repository contains a reproduction that requests a code sample from all our models that support function calling and then logs whenever any one of those 5 calls has more than 5 seconds between chunks.
 
 Note: This usually happens when asking Kimi to generate code.
 

@@ -1,7 +1,32 @@
 import "dotenv/config";
 
-const payload = {
-  model: "moonshotai/Kimi-K2-Instruct-0905",
+const models = [
+  "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+  "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
+  "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+  "zai-org/GLM-4.5-Air-FP8",
+  "openai/gpt-oss-120b",
+  "openai/gpt-oss-20b",
+  "moonshotai/Kimi-K2-Instruct",
+  "Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8",
+  "deepseek-ai/DeepSeek-R1",
+  "deepseek-ai/DeepSeek-V3",
+  "meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8",
+  "meta-llama/Llama-4-Scout-17B-16E-Instruct",
+  "Qwen/Qwen3-235B-A22B-fp8-tput",
+  "Qwen/Qwen3-235B-A22B-Thinking-2507",
+  "meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo",
+  "meta-llama/Llama-3.2-3B-Instruct-Turbo",
+  "Qwen/Qwen2.5-7B-Instruct-Turbo",
+  "Qwen/Qwen2.5-72B-Instruct-Turbo",
+  "mistralai/Mistral-Small-24B-Instruct-2501",
+  "arcee-ai/virtuoso-medium-v2",
+  "arcee-ai/caller",
+  "arcee-ai/virtuoso-large",
+];
+
+const createPayload = (model: string) => ({
+  model,
   messages: [
     {
       role: "system",
@@ -41,97 +66,114 @@ const payload = {
   temperature: 0.6,
   max_tokens: 10000,
   stream: true,
-};
+});
 
-const runners = 5;
+const runners = 1;
 
 type Run = {
   id: number;
+  model: string;
   startTime: number;
   maxTime: number;
   time: number;
   timer: NodeJS.Timeout | null;
 };
 
-async function main() {
-  const runs = Array.from({ length: runners }).map(async (_runner, index) => {
-    // delay each run by some offset so they don't all happen at the same time
-    await new Promise((resolve) => setTimeout(resolve, 5000 * index));
+async function testModel(model: string, modelIndex: number): Promise<Run> {
+  console.log(`\n[${modelIndex + 1}/${models.length}] Testing model: ${model}`);
 
-    const response = await fetch(
-      "https://api.together.ai/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.TOGETHER_API_KEY}`,
-        },
-        body: JSON.stringify(payload),
-      },
+  const payload = createPayload(model);
+
+  const response = await fetch("https://api.together.ai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.TOGETHER_API_KEY}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const textDecoder = new TextDecoderStream();
+
+  if (!response.ok) {
+    throw new Error(
+      `HTTP error! status: ${response.status} for model ${model}`,
     );
+  }
 
-    const textDecoder = new TextDecoderStream();
+  if (!response.body) {
+    throw new Error("Response body is null");
+  }
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
+  const readableStream = response.body.pipeThrough(textDecoder);
 
-    if (!response.body) {
-      throw new Error("Response body is null");
-    }
+  const run: Run = {
+    id: modelIndex,
+    model,
+    startTime: performance.now(),
+    time: performance.now(),
+    maxTime: -1,
+    timer: null,
+  };
 
-    const readableStream = response.body.pipeThrough(textDecoder);
-
-    const run: Run = {
-      id: index,
-      startTime: performance.now(),
-      time: performance.now(),
-      maxTime: -1,
-      timer: null,
-    };
-
-    for await (const chunk of readableStream) {
-      if (run.timer) {
-        clearTimeout(run.timer);
-      }
-
-      run.timer = setTimeout(() => {
-        process.stdout.write(`[Run #${index} stream stalled]`);
-      }, 5000);
-
-      process.stdout.write(".");
-      const chunkTime = performance.now();
-      const chunkDistance = chunkTime - run.time;
-      run.maxTime = Math.max(run.maxTime, chunkDistance);
-      run.time = performance.now();
-    }
-
+  for await (const chunk of readableStream) {
     if (run.timer) {
       clearTimeout(run.timer);
     }
 
-    return run;
-  });
+    run.timer = setTimeout(() => {
+      process.stdout.write(`[${model} stream stalled]`);
+    }, 5000);
 
-  console.log(`Starting ${runners} streams`);
-
-  const results = await Promise.all(runs);
-
-  console.log("\nAll runners completed.");
-
-  for (let result of results) {
-    console.log(
-      `[Run #${result.id}] Total time:`,
-      (result.startTime - result.time / 1000).toFixed(2),
-      "seconds",
-    );
+    process.stdout.write(".");
+    const chunkTime = performance.now();
+    const chunkDistance = chunkTime - run.time;
+    run.maxTime = Math.max(run.maxTime, chunkDistance);
+    run.time = performance.now();
   }
 
+  if (run.timer) {
+    clearTimeout(run.timer);
+  }
+
+  return run;
+}
+
+async function main() {
+  console.log(`Starting tests for ${models.length} models`);
+
+  const results: Run[] = [];
+
+  for (let i = 0; i < models.length; i++) {
+    const model = models[i];
+    try {
+      const result = await testModel(model, i);
+      results.push(result);
+
+      console.log(
+        `\n[${model}] Total time: ${((result.time - result.startTime) / 1000).toFixed(2)} seconds`,
+      );
+      console.log(
+        `[${model}] Max time between chunks: ${(result.maxTime / 1000).toFixed(2)} seconds`,
+      );
+    } catch (error) {
+      console.error(`\n[${model}] Error:`, error);
+    }
+
+    // Add a small delay between models to avoid rate limiting
+    if (i < models.length - 1) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+  }
+
+  console.log("\n=== SUMMARY ===");
+  console.log(
+    `Completed ${results.length}/${models.length} models successfully`,
+  );
+
   for (let result of results) {
     console.log(
-      `[Run #${result.id}] Max time between chunks:`,
-      (result.maxTime / 1000).toFixed(2),
-      "seconds",
+      `[${result.model}] Total: ${((result.time - result.startTime) / 1000).toFixed(2)}s, Max chunk delay: ${(result.maxTime / 1000).toFixed(2)}s`,
     );
   }
 }
