@@ -1,13 +1,14 @@
 import "dotenv/config";
 
 const models = [
+  "moonshotai/Kimi-K2-Instruct",
+  "moonshotai/Kimi-K2-Instruct-0905",
   "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
   "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
   "meta-llama/Llama-3.3-70B-Instruct-Turbo",
   "zai-org/GLM-4.5-Air-FP8",
   "openai/gpt-oss-120b",
   "openai/gpt-oss-20b",
-  "moonshotai/Kimi-K2-Instruct",
   "Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8",
   "deepseek-ai/DeepSeek-R1",
   "deepseek-ai/DeepSeek-V3",
@@ -34,7 +35,7 @@ const createPayload = (model: string) => ({
     },
     {
       role: "user",
-      content: "write a javascript program that balances a binary tree",
+      content: "write me a recipe for a chocolate cake",
     },
   ],
   tools: [
@@ -67,8 +68,6 @@ const createPayload = (model: string) => ({
   max_tokens: 10000,
   stream: true,
 });
-
-const runners = 1;
 
 type Run = {
   id: number;
