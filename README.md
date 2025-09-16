@@ -1,36 +1,24 @@
-# Stalled chunk on many models
+# Stalled chunk on many models when streaming w/ tools
 
-When requesting a stream from a lot of our models (including Kimi K2 Instruct 0905, Qwen/Qwen3-235B-A22B-Thinking-2507, OSS GPT 120B, ect...) with tools the stream chunks usually stall. For example, in the middle of the stream there will be a delay from anywhere between 15 and 30 seconds between chunks. This makes it appear as if the stream is frozen or has crashed.
+When requesting a stream from a lot of our models (including Kimi K2 Instruct 0905, Qwen/Qwen3-235B-A22B-Thinking-2507, OSS GPT 120B, ect...) with tools the stream chunks usually stall. For example, in the middle of the stream there will be a delay from anywhere between 5 and 60 seconds between chunks. This makes it appear as if the stream is frozen or has crashed.
+
+_This SPECIFICALLY happens when requesting code from a model._
 
 This repository contains a reproduction that requests a code sample from all our models that support function calling and then logs whenever any one of those 5 calls has more than 5 seconds between chunks.
 
-Note: This usually happens when asking Kimi to generate code.
-
 ## Example
+
+You can see Kimi K2 Instruct 0905 stall in the middle of the stream for 29 seconds for example.
 
 ```text
 $ pnpm tsx examples/together-tools-fetch-streaming.ts
 
-Starting 5 streams
-................................................................................
-..........................[Run #0 stream stalled][Run #1 stream stalled]........
-.....................................................[Run #2 stream stalled]....
-.....................................[Run #3 stream stalled]....................
-.....................................[Run #4 stream stalled]....................
-................................................................................
-................................................................................
-.......................
-All runners completed.
-[Run #0] Total time: 5726.68 seconds
-[Run #1] Total time: 6743.87 seconds
-[Run #2] Total time: 11192.75 seconds
-[Run #3] Total time: 15962.19 seconds
-[Run #4] Total time: 20856.81 seconds
-[Run #0] Max time between chunks: 18.51 seconds
-[Run #1] Max time between chunks: 33.57 seconds
-[Run #2] Max time between chunks: 15.00 seconds
-[Run #3] Max time between chunks: 25.96 seconds
-[Run #4] Max time between chunks: 22.44 seconds
+Starting tests for 9 models
+
+[1/9] Testing model: moonshotai/Kimi-K2-Instruct
+............................................[moonshotai/Kimi-K2-Instruct stream stalled].........................................
+[moonshotai/Kimi-K2-Instruct] Total time: 37.53 seconds
+[moonshotai/Kimi-K2-Instruct] Max time between chunks: 29.81 seconds
 ```
 
 ## Setup
@@ -53,9 +41,8 @@ pnpm install
 
 Run each of the following scripts to see the tool call output from the services:
 
-| Command                                                | Description                                                              | Streams reasoning   |
-| ------------------------------------------------------ | ------------------------------------------------------------------------ | ------------------- |
-| `pnpm tsx examples/together-tools-fetch-streaming.ts`  | Fetch a streaming response from Together AI with tools in the request    | ❌ Streaming stalls |
-| `pnpm tsx examples/together-fetch-streaming.ts`        | Fetch a streaming response from Together AI without tools in the request | ✅ Streams smoothly |
-| `pnpm tsx examples/fireworks-tools-fetch-streaming.ts` | Fetch a streaming response from Fireworks with tools in the request      | ✅ Streams smoothly |
-| `pnpm tsx examples/fireworks-fetch-streaming.ts`       | Fetch a streaming response from Fireworks without tools in the request   | ✅ Streams smoothly |
+| Command                                                    | Description                                                              | Streams reasoning   |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------ | ------------------- |
+| `pnpm tsx examples/together-tools-fetch-bad-streaming.ts`  | Fetch a streaming response from Together AI with tools in the request    | ❌ Streaming stalls |
+| `pnpm tsx examples/together-tools-fetch-good-streaming.ts` | Fetch a streaming response from Together AI without tools in the request | ✅ Streams smoothly |
+| `pnpm tsx examples/fireworks-tools-fetch-streaming.ts`     | Fetch a streaming response from Fireworks with tools in the request      | ✅ Streams smoothly |

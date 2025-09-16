@@ -4,27 +4,29 @@ const models = [
   "moonshotai/Kimi-K2-Instruct",
   "moonshotai/Kimi-K2-Instruct-0905",
   "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
-  "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
   "meta-llama/Llama-3.3-70B-Instruct-Turbo",
   "zai-org/GLM-4.5-Air-FP8",
   "openai/gpt-oss-120b",
-  "openai/gpt-oss-20b",
   "Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8",
-  "deepseek-ai/DeepSeek-R1",
   "deepseek-ai/DeepSeek-V3",
-  "meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8",
-  "meta-llama/Llama-4-Scout-17B-16E-Instruct",
   "Qwen/Qwen3-235B-A22B-fp8-tput",
-  "Qwen/Qwen3-235B-A22B-Thinking-2507",
-  "meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo",
-  "meta-llama/Llama-3.2-3B-Instruct-Turbo",
-  "Qwen/Qwen2.5-7B-Instruct-Turbo",
-  "Qwen/Qwen2.5-72B-Instruct-Turbo",
-  "mistralai/Mistral-Small-24B-Instruct-2501",
-  "arcee-ai/virtuoso-medium-v2",
-  "arcee-ai/caller",
-  "arcee-ai/virtuoso-large",
+  // "openai/gpt-oss-20b",
+  // "deepseek-ai/DeepSeek-R1",
+  // "meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8",
+  // "meta-llama/Llama-4-Scout-17B-16E-Instruct",
+  // "Qwen/Qwen3-235B-A22B-Thinking-2507",
+  // "meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo",
+  // "meta-llama/Llama-3.2-3B-Instruct-Turbo",
+  // "Qwen/Qwen2.5-7B-Instruct-Turbo",
+  // "Qwen/Qwen2.5-72B-Instruct-Turbo",
+  // "mistralai/Mistral-Small-24B-Instruct-2501",
+  // "arcee-ai/virtuoso-medium-v2",
+  // "arcee-ai/caller",
+  // "arcee-ai/virtuoso-large",
 ];
+
+const problematicPrompt =
+  "write a javascript program that balances a binary tree";
 
 const createPayload = (model: string) => ({
   model,
@@ -35,7 +37,7 @@ const createPayload = (model: string) => ({
     },
     {
       role: "user",
-      content: "write me a recipe for a chocolate cake",
+      content: problematicPrompt,
     },
   ],
   tools: [
